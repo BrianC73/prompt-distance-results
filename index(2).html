@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt Distance Results</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE work: a research results record for an advisor, quiet and exact
+   IDEA the lab's experiment record (after the protein-dashboard reference): findings as titles, numbers beside every chart
+   PICTURE held-out R² intervals per representation, then a reliability-vs-relevance map of every elicited feature
+   COLOUR deep green-black ground, bone ink; lime = raw embeddings, amber = ReElicit, blue/grey = other variants
+   TYPE Source Serif 4 titles + Inter text
+   LAYOUT title and four figures across the top, then three full-width sections, chart left and numbers right; stacks below 760px */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0b0f0e);--panel:light-dark(#f6f7f3,#111715);--rule:light-dark(#dcdfd6,#26302c);
+--ink:light-dark(#141813,#e9eadf);--soft:light-dark(#5b6157,#a7ab9b);--faint:light-dark(#8a9086,#6f766c);
+--raw:light-dark(#3f7d00,#b8ef5b);--eli:light-dark(#b86a00,#f0b35c);--blue:light-dark(#2f6fd6,#6ea8fe);--grey:light-dark(#7d8479,#8d9488);--band:light-dark(#eef0ea,#18201d)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(4vw,16px)}
+header{padding:clamp(28px,4vw,52px) 0 8px}
+h1,h2{font-family:"Source Serif 4",Georgia,serif;font-weight:600;letter-spacing:-.015em;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4.2vw,44px);line-height:1.08;max-width:34ch}
+h2{font-size:clamp(21px,2.4vw,27px);line-height:1.15}
+.sub{color:var(--soft);margin:12px 0 0;max-width:72ch;font-size:15px}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0 8px}
+.figs div{background:var(--bg);padding:14px 16px}
+.figs b{display:block;font:600 clamp(26px,3vw,34px)/1.1 "Source Serif 4",Georgia,serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+.figs span{color:var(--soft);font-size:13.5px;line-height:1.35;display:block;margin-top:4px}
+.r{color:var(--raw)}.e{color:var(--eli)}
+section{border-top:1px solid var(--rule);padding:clamp(26px,3.5vw,44px) 0}
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:clamp(20px,3vw,40px);align-items:start;margin-top:18px}
+.fig{position:relative;min-height:300px}.fig>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.tall{min-height:380px}
+svg text{font:13px Inter,system-ui,sans-serif;fill:var(--soft);paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+.key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13.5px;color:var(--soft);margin:0 0 6px}
+.key i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.note{color:var(--soft);font-size:14.5px;margin:14px 0 0}
+.take{margin:0 0 10px;font-size:16px}
+.take+.take{margin-top:0}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+th{font-weight:500;color:var(--soft);font-size:13px;vertical-align:bottom}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+td{font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:0}
+.hl td{background:var(--band)}
+.bars{display:grid;gap:10px;margin-top:12px}
+.bar{display:grid;grid-template-columns:minmax(8em,13em) minmax(0,1fr) 4.2em;gap:10px;align-items:center;font-size:14px}
+.bar div{height:12px;background:var(--band);border-radius:2px}
+.bar div i{display:block;height:100%;border-radius:2px}
+.bar em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,3vw,40px);margin-top:18px}
+.panel{background:var(--panel);border:1px solid var(--rule);padding:18px 18px 16px}
+.panel h3{margin:0;font-size:16px;font-weight:600}
+ul.next{margin:14px 0 0;padding-left:1.1em;max-width:80ch}
+ul.next li{margin:6px 0}
+footer{color:var(--faint);font-size:13px;padding:8px 0 40px}
+@media(max-width:760px){.grid,.two{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){table{font-size:13px}th,td{padding:6px 4px}.bar{grid-template-columns:minmax(7em,9em) minmax(0,1fr) 3.6em;font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Plain embeddings remain the best surrogate; a 72B extractor lifts ReElicit only to PCA's level</h1>
+  <p class="sub">IFBench, GEPA-proposed instructions for the two-stage Qwen2.5-7B program. 347 genuine instructions re-scored on a fixed 300-example validation set; each surrogate is a GP scored on held-out prompts (5-fold, features re-elicited inside each fold).</p>
+  <div class="figs">
+    <div><b>0.00</b><span>reliability of the original GEPA scores (3 examples each)</span></div>
+    <div><b>347</b><span>clean instructions re-scored: 127 generate, 219 ensure</span></div>
+    <div><b class="r">+0.47</b><span>held-out Spearman, raw Qwen embeddings (ensure stage)</span></div>
+    <div><b class="e">+0.29</b><span>held-out Spearman, ReElicit with 72B extractor (7B: −0.07)</span></div>
+  </div>
+</header>
+
+<section>
+  <h2>Only raw embeddings beat the mean predictor; the 72B ReElicit ranks prompts about as well as PCA-3</h2>
+  <div class="grid">
+    <div>
+      <div class="key"><span><i style="background:var(--raw)"></i>Raw Qwen embeddings (3584-d)</span><span><i style="background:var(--grey)"></i>PCA, 3 components</span><span><i style="background:var(--bg);border:2px solid var(--eli)"></i>ReElicit, 7B default</span><span><i style="background:var(--eli)"></i>ReElicit, 72B (5 graded)</span></div>
+      <div class="two" style="margin-top:6px">
+        <div><div class="note" style="margin:0 0 4px">Generate stage, n = 127</div><div class="fig" id="fa"></div></div>
+        <div><div class="note" style="margin:0 0 4px">Ensure stage, n = 219</div><div class="fig" id="fb"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="scroll"><table>
+        <thead><tr><th>Representation</th><th>Gen R²</th><th>Gen ρ</th><th>Ens R²</th><th>Ens ρ</th></tr></thead>
+        <tbody id="ta"></tbody>
+      </table></div>
+      <p class="note">Held-out R² with 95% bootstrap interval; ρ is held-out Spearman. Zero means no better than predicting the average score. PCA with 2 or 10 components did no better than 3. The 72B run was ensure only, on text with examples stripped; in squared error it ties PCA and the mean and is worse than raw embeddings (paired bootstrap).</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>A bigger extractor made ReElicit's features reliable; alone none tracks score, together they reach 0.29</h2>
+  <div class="grid">
+    <div>
+      <div class="key"><span><i style="background:var(--grey)"></i>7B, paper's default prompt</span><span><i style="background:var(--blue)"></i>7B, 5 graded features</span><span><i style="background:var(--eli)"></i>72B, 5 graded features</span></div>
+      <div class="fig tall" id="fc"></div>
+    </div>
+    <div>
+      <p class="take">Each dot is one elicited feature (ensure stage). Right means the same prompt gets the same rating when re-extracted; up means the feature tracks score.</p>
+      <p class="take">The 72B moves features right, from test-retest 0.3–0.5 to 0.55–0.79, but each feature alone stays inside the grey band. Combined in a GP, with features re-chosen in each fold, the 72B set reaches a held-out ρ of 0.29; raw embeddings reach 0.47. The lines are whole models, the dots single features.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Variant</th><th>Test-retest</th><th>Distances repeat</th><th>ρ with score</th></tr></thead>
+        <tbody id="tc"></tbody>
+      </table></div>
+      <p class="note">"No examples" means worked examples GEPA pasted into the instruction were stripped before extraction. Default features took only 3–4 distinct values and tended to pick out individual task rules; stripping examples did not change that.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>How we got here</h2>
+  <div class="two">
+    <div class="panel">
+      <h3>The original labels had no signal to learn</h3>
+      <p class="note" style="margin-top:6px">GEPA scored each prompt on 3 examples. The spread between prompts is smaller than the noise 3 examples produce, so a surrogate could not learn anything.</p>
+      <div class="bars" id="bn"></div>
+      <p class="note">Noise per score, by evaluation size: 0.25 at 3 examples, 0.04 at 150, 0.03 at 300.</p>
+    </div>
+    <div class="panel">
+      <h3>The multi-round loop tied the seed on generate and failed on ensure</h3>
+      <div class="scroll" style="margin-top:10px"><table>
+        <thead><tr><th>Stage, 7 rounds</th><th>Best seed prompt</th><th>Best loop prompt</th></tr></thead>
+        <tbody>
+          <tr><td>Generate</td><td>0.438</td><td>0.434</td></tr>
+          <tr><td>Ensure</td><td>0.491</td><td>0.362</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">Generate is a tie within noise (±0.03). Since the 7B features the loop used don't predict score, the tie likely comes from the generator copying good prompts, not from BO. A random-target run would test this.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Next: check the baseline, then get prompts from outside GEPA</h2>
+  <ul class="next">
+    <li>Grouped cross-validation: hold out whole GEPA runs, so a prompt's parent and siblings are never in training. If the 0.47 holds, raw-embedding distance carries over to new runs; if it drops, it was partly recognizing near-copies.</li>
+    <li>A one-shot prompt pool (about 100 ensure prompts from one meta-prompt, no reflection), scored the same way. It shows where GEPA's best falls among simply sampled prompts, and gives a dataset free of GEPA lineage for the distance question.</li>
+    <li>72B ReElicit on the generate stage, to close out ReElicit on both stages.</li>
+    <li>Later, to discuss: BOReFT learns its own low-dimensional space over hidden states, a different answer to what distance between prompts should mean. Compared at equal evaluation budget, not prompt against prompt.</li>
+  </ul>
+</section>
+<footer>All results use random 5-fold splits over prompts from GEPA runs; the grouped check above is pending. Scores: per-example IFBench metric on a fixed 300-example validation subset, partner stage held at its default instruction. Feature stability: 3 extractions with prompts shuffled into new batches of 10.</footer>
+</div>
+<script>
+{
+const A=[ // representation, gen R2 [lo,hi], gen rho, ens R2 [lo,hi], ens rho
+ {n:"Raw embeddings",s:"Raw",c:"--raw",g:[.151,-.00,.26],gr:.319,e:[.239,.13,.33],er:.468},
+ {n:"PCA-3",s:"PCA-3",c:"--grey",g:[.083,-.04,.17],gr:.244,e:[.054,-.06,.14],er:.254},
+ {n:"ReElicit, 7B default",s:"ReElicit 7B",c:"--eli",h:1,g:[-.031,-.19,.10],gr:.026,e:[-.047,-.13,.01],er:-.066},
+ {n:"ReElicit, 72B graded",s:"ReElicit 72B",c:"--eli",g:null,gr:null,e:[.054,-.06,.16],er:.288}];
+const F=[ // variant, colour, [test-retest, rho with score] per feature
+ {v:"7B default",c:"--grey",p:[[.51,.16],[.55,.17],[.38,.11]],tr:"0.38–0.55",d:"0.19",rho:"+0.11 to +0.17"},
+ {v:"7B default, no examples",c:"--grey",p:[[.50,-.06],[-.01,.12]],tr:"−0.01–0.50",d:"0.38",rho:"−0.06 to +0.12"},
+ {v:"7B graded",c:"--blue",p:[[.22,-.06],[.29,-.06],[.17,-.01],[.11,.01],[.12,-.04]],tr:"0.11–0.29",d:"0.09",rho:"−0.06 to +0.01"},
+ {v:"7B graded, no examples",c:"--blue",p:[[.34,.01],[.37,-.03],[.40,-.01],[.47,.03],[.37,0]],tr:"0.34–0.47",d:"0.21",rho:"−0.03 to +0.03"},
+ {v:"72B graded, no examples",c:"--eli",p:[[.63,-.08],[.58,-.07],[.79,-.02],[.63,-.08],[.55,-.06]],tr:"0.55–0.79",d:"0.60",rho:"−0.08 to −0.02",hl:1}];
+const f2=x=>(x<0?"−":"+")+Math.abs(x).toFixed(2);
+const ci=a=>`${f2(a[0])} <span style="color:var(--faint)">[${f2(a[1])}, ${f2(a[2])}]</span>`;
+document.getElementById("ta").innerHTML=A.map(r=>`<tr><td><span style="color:var(${r.c})">${r.h?'○':'●'}</span> ${r.n}</td><td>${r.g?f2(r.g[0]):'<span style="color:var(--faint)">not run</span>'}</td><td>${r.g?f2(r.gr):''}</td><td>${f2(r.e[0])}</td><td>${f2(r.er)}</td></tr>`).join("");
+document.getElementById("tc").innerHTML=F.map(r=>`<tr${r.hl?' class="hl"':''}><td><span style="color:var(${r.c})">●</span> ${r.v}</td><td>${r.tr}</td><td>${r.d}</td><td>${r.rho}</td></tr>`).join("");
+const N=[["Spread between prompts",.0486,"--raw"],["Noise from 3 examples",.0648,"--eli"]];
+document.getElementById("bn").innerHTML=N.map(([l,v,c])=>`<div class="bar"><span>${l}</span><div><i style="width:${v/.0648*100}%;background:var(${c})"></i></div><em>${v.toFixed(3)}</em></div>`).join("");
+
+function interval(id,key){
+  const s=document.createElementNS("http://www.w3.org/2000/svg","svg");document.getElementById(id).appendChild(s);
+  const draw=()=>{const W=s.clientWidth,H=s.clientHeight,narrow=W<300;
+    const L=narrow?84:96,R=12,T=14,B=34,x0=-.25,x1=.4,X=v=>L+(v-x0)/(x1-x0)*(W-L-R);
+    const rows=A.length,rh=(H-T-B)/rows;let o="";
+    [-.2,0,.2,.4].forEach(t=>{o+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${H-B}" stroke="var(${t===0?'--soft':'--rule'})" stroke-width="${t===0?1.2:1}" ${t===0?'stroke-dasharray="4 3"':''}/><text x="${X(t)}" y="${H-B+18}" text-anchor="middle">${t===0?"0":f2(t).replace("+0","+0")}</text>`});
+    o+=`<text x="${X(0)+5}" y="${T+2}" dominant-baseline="hanging" style="font-size:12px">mean</text>`;
+    A.forEach((r,i)=>{const y=T+rh*(i+.5),v=r[key];if(!v){o+=`<text x="${L-10}" y="${y}" text-anchor="end" dominant-baseline="middle" style="fill:var(--ink)">${r.s}</text><text x="${X(0)+8}" y="${y}" dominant-baseline="middle" style="fill:var(--faint)">not run</text>`;return}
+      o+=`<text x="${L-10}" y="${y}" text-anchor="end" dominant-baseline="middle" style="fill:var(--ink)">${narrow?r.s:r.s}</text>`;
+      o+=`<line x1="${X(v[1])}" x2="${X(v[2])}" y1="${y}" y2="${y}" stroke="var(${r.c})" stroke-width="3" stroke-linecap="round"/>`;
+      o+=r.h?`<circle cx="${X(v[0])}" cy="${y}" r="5.5" fill="var(--bg)" stroke="var(${r.c})" stroke-width="2.5"/>`:`<circle cx="${X(v[0])}" cy="${y}" r="6.5" fill="var(${r.c})" stroke="var(--bg)" stroke-width="2"/>`;});
+    o+=`<text x="${(L+W-R)/2}" y="${H-2}" text-anchor="middle">held-out R²</text>`;
+    s.innerHTML=o;};
+  const ro=new ResizeObserver(draw);ro.observe(s);
+}
+interval("fa","g");interval("fb","e");
+
+{const s=document.createElementNS("http://www.w3.org/2000/svg","svg");document.getElementById("fc").appendChild(s);
+ const draw=()=>{const W=s.clientWidth,H=s.clientHeight,narrow=W<520;
+  const L=48,R=14,T=16,B=44,x0=-.05,x1=1,y0=-.2,y1=.55;
+  const X=v=>L+(v-x0)/(x1-x0)*(W-L-R),Y=v=>T+(y1-v)/(y1-y0)*(H-T-B);let o="";
+  o+=`<rect x="${L}" y="${Y(.13)}" width="${W-L-R}" height="${Y(-.13)-Y(.13)}" fill="var(--band)"/>`;
+  o+=`<text x="${W-R-6}" y="${Y(-.13)-6}" text-anchor="end">${narrow?"no relationship":"no relationship (95% range, n = 219)"}</text>`;
+  [0,.25,.5,.75,1].forEach(t=>{o+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${H-B}" stroke="var(--rule)"/><text x="${X(t)}" y="${H-B+18}" text-anchor="middle">${t}</text>`});
+  [-.2,0,.2,.4].forEach(t=>{o+=`<line x1="${L}" x2="${W-R}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--rule)"/><text x="${L-8}" y="${Y(t)}" text-anchor="end" dominant-baseline="middle">${t===0?"0":f2(t)}</text>`});
+  o+=`<line x1="${X(.7)}" x2="${X(.7)}" y1="${T}" y2="${H-B}" stroke="var(--soft)" stroke-dasharray="4 3"/><text x="${X(.7)+6}" y="${T+2}" dominant-baseline="hanging">reliable →</text>`;
+  o+=`<line x1="${L}" x2="${W-R}" y1="${Y(.468)}" y2="${Y(.468)}" stroke="var(--raw)" stroke-width="1.5" stroke-dasharray="6 4"/><text x="${L+6}" y="${Y(.468)-7}" style="fill:var(--raw)">raw-embedding GP (whole model), held-out ρ = 0.47</text>`;
+  o+=`<line x1="${L}" x2="${W-R}" y1="${Y(.288)}" y2="${Y(.288)}" stroke="var(--eli)" stroke-width="1.5" stroke-dasharray="6 4"/><text x="${L+6}" y="${Y(.288)-7}" style="fill:var(--eli)">72B features in a GP, held-out ρ = 0.29</text>`;
+  F.forEach(g=>g.p.forEach(([a,b])=>{o+=`<circle cx="${X(a)}" cy="${Y(b)}" r="6" fill="var(${g.c})" fill-opacity=".9" stroke="var(--bg)" stroke-width="2"/>`}));
+  o+=`<text x="${(L+W-R)/2}" y="${H-6}" text-anchor="middle">test-retest correlation (same prompt, re-extracted)</text>`;
+  o+=`<text transform="translate(12 ${(T+H-B)/2}) rotate(-90)" text-anchor="middle">Spearman with score</text>`;
+  s.innerHTML=o;};
+ const ro2=new ResizeObserver(draw);ro2.observe(s);}
+}
+</script>
+</body>
+</html>
