@@ -141,16 +141,8 @@ footer{color:var(--faint);font-size:13px;padding:8px 0 40px}
   </div>
 </section>
 
-<section>
-  <h2>Next: check the baseline, then get prompts from outside GEPA</h2>
-  <ul class="next">
-    <li>Grouped cross-validation: hold out whole GEPA runs, so a prompt's parent and siblings are never in training. If the 0.47 holds, raw-embedding distance carries over to new runs; if it drops, it was partly recognizing near-copies.</li>
-    <li>A one-shot prompt pool (about 100 ensure prompts from one meta-prompt, no reflection), scored the same way. It shows where GEPA's best falls among simply sampled prompts, and gives a dataset free of GEPA lineage for the distance question.</li>
-    <li>72B ReElicit on the generate stage, to close out ReElicit on both stages.</li>
-    <li>Later, to discuss: BOReFT learns its own low-dimensional space over hidden states, a different answer to what distance between prompts should mean. Compared at equal evaluation budget, not prompt against prompt.</li>
-  </ul>
-</section>
-<footer>All results use random 5-fold splits over prompts from GEPA runs; the grouped check above is pending. Scores: per-example IFBench metric on a fixed 300-example validation subset, partner stage held at its default instruction. Feature stability: 3 extractions with prompts shuffled into new batches of 10.</footer>
+
+<footer>All results use random 5-fold splits over prompts from GEPA runs. Scores: per-example IFBench metric on a fixed 300-example validation subset, partner stage held at its default instruction. Feature stability: 3 extractions with prompts shuffled into new batches of 10.</footer>
 </div>
 <script>
 {
